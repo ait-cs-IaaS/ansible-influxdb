@@ -1,10 +1,8 @@
 ---
 - include: install.yml
   tags: [influxdb, install]
-
 - include: configure.yml
   tags: [influxdb, configure]
-
 - name: Start the InfluxDB service
   ansible.builtin.service:
     name: influxdb
@@ -15,7 +13,7 @@
 
 - name: Wait for InfluxDB to come up
   ansible.builtin.wait_for:
-    host: "{{ influxdb_bind_hostname | default(\"localhost\", true) }}"
+    host: '{{ influxdb_bind_hostname | default("localhost", true) }}'
     port: "{{ influxdb_http_port }}"
     delay: 5
     timeout: 30
@@ -36,7 +34,7 @@
 - name: Assert status of InfluxDB service
   ansible.builtin.assert:
     that:
-      - "influxdb_start_attempt == 0"
+      - influxdb_start_attempt == 0
   when: influxdb_started.changed and influxdb_start_service and influxdb_start_attempt.failed is defined and influxdb_start_attempt.failed
 
 - include: demo.yml
@@ -45,6 +43,5 @@
 
 - include: verify.yml
   tags: [influxdb, verify]
-
 - include: stress.yml
   tags: [influxdb, stress]

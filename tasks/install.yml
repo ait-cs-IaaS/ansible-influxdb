@@ -10,7 +10,7 @@
 
 - name: Get the package facts
   ansible.builtin.package_facts:
-    manager: "auto"
+    manager: auto
 
 - name: Show package version
   ansible.builtin.debug: var=ansible_facts.packages.influxdb[0].version
