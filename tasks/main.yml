@@ -1,47 +1,68 @@
 ---
-- include: install.yml
+- name: Import install tasks
   tags: [influxdb, install]
-- include: configure.yml
+  ansible.builtin.include_tasks:
+      file: install.yml
+
+- name: Import configure tasks
   tags: [influxdb, configure]
+  ansible.builtin.include_tasks:
+      file: configure.yml
+
 - name: Start the InfluxDB service
   ansible.builtin.service:
-    name: influxdb
-    state: restarted
-    enabled: true
+      name: influxdb
+      state: restarted
+      enabled: true
   register: influxdb_started
   when: influxdb_start_service
 
 - name: Wait for InfluxDB to come up
   ansible.builtin.wait_for:
-    host: '{{ influxdb_bind_hostname | default("localhost", true) }}'
-    port: "{{ influxdb_http_port }}"
-    delay: 5
-    timeout: 30
+      host: '{{ influxdb_bind_hostname | default("localhost", true) }}'
+      port: '{{ influxdb_http_port }}'
+      delay: 5
+      timeout: 30
   when: influxdb_started.changed and influxdb_start_service
   ignore_errors: true
   register: influxdb_start_attempt
 
 - name: Run tail on log
-  ansible.builtin.command: tail /var/log/influxdb/influxd.log
+  ansible.builtin.command:
+      cmd: tail /var/log/influxdb/influxd.log
   register: influxdb_tail_output
-  when: influxdb_start_attempt.failed is defined and influxdb_start_attempt.failed
+  changed_when: false
+  when:
+      influxdb_start_attempt.failed is defined and influxdb_start_attempt.failed
 
 - name: Show log output
   ansible.builtin.debug:
-    msg: "{{ influxdb_tail_output.stdout_lines }}"
-  when: influxdb_start_attempt.failed is defined and influxdb_start_attempt.failed
+      msg: '{{ influxdb_tail_output.stdout_lines }}'
+  when:
+      influxdb_start_attempt.failed is defined and influxdb_start_attempt.failed
 
 - name: Assert status of InfluxDB service
   ansible.builtin.assert:
-    that:
-      - influxdb_start_attempt == 0
-  when: influxdb_started.changed and influxdb_start_service and influxdb_start_attempt.failed is defined and influxdb_start_attempt.failed
+      that:
+          - influxdb_start_attempt == 0
+  when:
+      influxdb_started.changed and influxdb_start_service and
+      influxdb_start_attempt.failed is defined and influxdb_start_attempt.failed
 
-- include: demo.yml
+- name: Demo
+  ansible.builtin.include_tasks:
+      file: demo.yml
   tags: [influxdb, demo]
-  when: influxdb_load_sample_data and influxdb_http_auth_enabled == "false" and influxdb_start_service
+  when:
+      influxdb_load_sample_data and influxdb_http_auth_enabled == "false" and
+      influxdb_start_service
 
-- include: verify.yml
+- name: Verify
+  ansible.builtin.include_tasks:
+      file: verify.yml
   tags: [influxdb, verify]
-- include: stress.yml
+
+- name: Stress
+  ansible.builtin.include_tasks:
+      file: stress.yml
   tags: [influxdb, stress]

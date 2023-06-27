@@ -1,14 +1,18 @@
 ---
 - name: List databases for verification
-  ansible.builtin.command: "{{ influxdb_binary_path }}/influx -execute 'show databases'"
+  ansible.builtin.command:
+      "{{ influxdb_binary_path }}/influx -execute 'show databases'"
   register: influxdb_show_databases
+  changed_when: false
   when:
-    - influxdb_verify_database_is_present is defined
-    - influxdb_verify_database_is_present != None
+      - influxdb_verify_database_is_present is defined
+      - influxdb_verify_database_is_present != None
 
 - name: Fail if database is not present
-  ansible.builtin.fail: msg="Database {{ influxdb_verify_database_is_present }} not present!"
+  ansible.builtin.fail:
+      msg: 'Database {{ influxdb_verify_database_is_present }} not present!'
   when:
-    - influxdb_verify_database_is_present is defined
-    - influxdb_verify_database_is_present != None
-    - influxdb_show_databases.stdout.find("{{ influxdb_verify_database_is_present }}") == -1
+      - influxdb_verify_database_is_present is defined
+      - influxdb_verify_database_is_present != None
+      - influxdb_show_databases.stdout.find("{
+        influxdb_verify_database_is_present }") == -1

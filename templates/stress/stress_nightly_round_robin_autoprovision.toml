@@ -99,4 +99,3 @@
       query_interval = "{{ stress_query_interval }}"
       # Number of concurrent queriers
       concurrency = 2
-
